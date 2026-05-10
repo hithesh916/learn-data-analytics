@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DataLytics — Advanced Analytics Platform</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/alasql/1.7.3/alasql.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+
+  <!-- ═══════════════════════════════════ UPLOAD SCREEN ═══════════════════════════════════ -->
+  <div id="upload-screen" class="upload-screen">
+    <canvas id="upload-canvas" class="upload-canvas"></canvas>
+    <div class="upload-container">
+      <div class="brand-logo">
+        <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+          <rect width="42" height="42" rx="10" fill="#00cffd" fill-opacity="0.15" />
+          <path d="M8 32L16 20L22 26L28 14L34 32" stroke="#00cffd" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+          <circle cx="16" cy="20" r="3" fill="#00cffd" />
+          <circle cx="28" cy="14" r="3" fill="#ff3d71" />
+        </svg>
+        <span class="brand-name">DataLytics</span>
+      </div>
+      <p class="brand-tagline">Power BI + Tableau — Unified in your browser</p>
+
+      <div id="drop-zone" class="drop-zone">
+        <div class="drop-zone-inner">
+          <div class="drop-icon">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+              <circle cx="28" cy="28" r="27" stroke="#00cffd" stroke-width="1.5" stroke-dasharray="4 4" />
+              <path d="M28 18V36M20 26L28 18L36 26" stroke="#00cffd" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+              <rect x="16" y="36" width="24" height="3" rx="1.5" fill="#00cffd" fill-opacity="0.4" />
+            </svg>
+          </div>
+          <h2 class="drop-title">Drop your data file here</h2>
+          <p class="drop-sub">Supports Excel (.xlsx, .xls) and CSV files</p>
+          <label class="btn-upload" for="file-input">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M2 11V13H14V11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              <path d="M8 2V10M5 5L8 2L11 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+            Browse File
+          </label>
+          <input id="file-input" type="file" accept=".xlsx,.xls,.csv" style="display:none" />
+        </div>
+      </div>
+
+      <div class="upload-features">
+        <div class="feat-item"><span class="feat-icon">📊</span><span>20+ Chart Types</span></div>
+        <div class="feat-item"><span class="feat-icon">🗃️</span><span>SQL Lab</span></div>
+        <div class="feat-item"><span class="feat-icon">📋</span><span>Data Profiling</span></div>
+        <div class="feat-item"><span class="feat-icon">🎛️</span><span>Live Dashboard</span></div>
+        <div class="feat-item"><span class="feat-icon">🔍</span><span>Smart Filters</span></div>
+        <div class="feat-item"><span class="feat-icon">📤</span><span>Export & Share</span></div>
+      </div>
+
+      <div id="upload-loading" class="upload-loading hidden">
+        <div class="spinner"></div>
+        <span>Parsing your data…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════ MAIN APP ═══════════════════════════════════ -->
+  <div id="main-app" class="main-app hidden">
+
+    <!-- TOP HEADER -->
+    <header class="top-header">
+      <div class="header-left">
+        <button id="sidebar-toggle" class="icon-btn" title="Toggle Sidebar">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <rect x="2" y="4" width="14" height="1.5" rx=".75" fill="currentColor" />
+            <rect x="2" y="8.25" width="14" height="1.5" rx=".75" fill="currentColor" />
+            <rect x="2" y="12.5" width="14" height="1.5" rx=".75" fill="currentColor" />
+          </svg>
+        </button>
+        <div class="header-brand">
+          <svg width="28" height="28" viewBox="0 0 42 42" fill="none">
+            <rect width="42" height="42" rx="10" fill="#00cffd" fill-opacity="0.15" />
+            <path d="M8 32L16 20L22 26L28 14L34 32" stroke="#00cffd" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <circle cx="16" cy="20" r="3" fill="#00cffd" />
+            <circle cx="28" cy="14" r="3" fill="#ff3d71" />
+          </svg>
+          <span>DataLytics</span>
+        </div>
+        <div class="header-divider"></div>
+        <div id="file-info" class="file-info">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 1H9L12 4V13H2V1Z" stroke="currentColor" stroke-width="1.2" />
+            <path d="M9 1V4H12" stroke="currentColor" stroke-width="1.2" />
+          </svg>
+          <span id="file-name">No file loaded</span>
+          <span id="file-rows" class="file-meta"></span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="icon-btn theme-toggle" id="theme-toggle-btn" title="Toggle Theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" class="moon-icon">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <button class="header-btn" id="export-csv-btn">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1V10M4 7L7 10L10 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M1 12H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+          Export CSV
+        </button>
+        <button class="header-btn" id="export-json-btn">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1V10M4 7L7 10L10 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M1 12H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+          Export JSON
+        </button>
+        <button class="header-btn" id="export-png-btn">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 12h10M4 4h.01M3 2h8a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm3 8L8 6l3 4"
+              stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          Export PNG
+        </button>
+        <button class="btn-new-file" id="new-file-btn">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1V13M1 7H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+          New File
+        </button>
+      </div>
+    </header>
+
+    <div class="app-body">
+
+      <!-- LEFT SIDEBAR -->
+      <aside id="sidebar" class="sidebar">
+        <nav class="sidebar-nav">
+          <button class="nav-item active" data-section="overview">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <rect x="1" y="1" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5" />
+              <rect x="10" y="1" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5" />
+              <rect x="1" y="10" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5" />
+              <rect x="10" y="10" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+            <span>Overview</span>
+          </button>
+          <button class="nav-item" data-section="data">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <rect x="1" y="3" width="16" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5" />
+              <path d="M1 7H17M6 7V15" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+            <span>Data Table</span>
+          </button>
+          <button class="nav-item" data-section="charts">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M1 14L5 8L9 11L13 5L17 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+            <span>Chart Builder</span>
+          </button>
+          <button class="nav-item" data-section="dashboard">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <rect x="1" y="1" width="7" height="10" rx="1" stroke="currentColor" stroke-width="1.5" />
+              <rect x="10" y="1" width="7" height="5" rx="1" stroke="currentColor" stroke-width="1.5" />
+              <rect x="10" y="8" width="7" height="9" rx="1" stroke="currentColor" stroke-width="1.5" />
+              <rect x="1" y="13" width="7" height="4" rx="1" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+            <span>Dashboard</span>
+          </button>
+          <button class="nav-item" data-section="sql">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M3 6H15M3 9H10M3 12H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              <rect x="1" y="2" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+            <span>SQL Lab</span>
+          </button>
+          <button class="nav-item" data-section="profile">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M2 15L4 9L7 12L10 7L13 10L16 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+            <span>Data Profile</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-section">
+          <div class="sidebar-label">FILTERS</div>
+          <div id="filter-container">
+            <p class="filter-hint">Load data to add filters</p>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-label">COLUMNS</div>
+          <div id="columns-list"></div>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="hithesh-sig">
+            Hand-coded with <span class="heart">❤️</span>, too much ☕, and precisely <i>zero</i> bugs* by <strong
+              class="glow-name"
+              onclick="this.classList.add('show-fun'); setTimeout(() => this.classList.remove('show-fun'), 2000)">Hithesh<span
+                class="have-fun-tooltip">Have fun! 🚀</span></strong><br>
+            <span class="fine-print">*Bugs are just surprise mechanics.</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
+
+        <!-- ── OVERVIEW ── -->
+        <section id="section-overview" class="content-section active">
+          <div class="section-header">
+            <h1 class="section-title">Overview</h1>
+            <p class="section-sub" id="overview-subtitle">Load a file to begin</p>
+          </div>
+          <div id="kpi-grid" class="kpi-grid"></div>
+          <div class="overview-charts">
+            <div class="chart-card" id="overview-chart-1">
+              <div class="chart-card-header"><span class="chart-card-title">Distribution Overview</span></div>
+              <div class="chart-wrapper"><canvas id="ov-chart1"></canvas></div>
+            </div>
+            <div class="chart-card" id="overview-chart-2">
+              <div class="chart-card-header"><span class="chart-card-title">Column Summary</span></div>
+              <div class="chart-wrapper"><canvas id="ov-chart2"></canvas></div>
+            </div>
+          </div>
+          <div id="data-quality-bar" class="data-quality-bar"></div>
+        </section>
+
+        <!-- ── DATA TABLE ── -->
+        <section id="section-data" class="content-section">
+          <div class="section-header">
+            <h1 class="section-title">Data Table</h1>
+            <div class="section-actions">
+              <input id="table-search" class="search-input" type="text" placeholder="Search rows…" />
+              <select id="table-page-size" class="select-input">
+                <option value="25">25 rows</option>
+                <option value="50">50 rows</option>
+                <option value="100">100 rows</option>
+                <option value="500">500 rows</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-container">
+            <table id="data-table" class="data-table">
+              <thead id="table-head"></thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+          <div class="table-pagination">
+            <span id="table-info"></span>
+            <div class="pagination-controls">
+              <button id="page-first" class="page-btn">«</button>
+              <button id="page-prev" class="page-btn">‹</button>
+              <span id="page-indicator"></span>
+              <button id="page-next" class="page-btn">›</button>
+              <button id="page-last" class="page-btn">»</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── CHART BUILDER ── -->
+        <section id="section-charts" class="content-section">
+          <div class="section-header">
+            <h1 class="section-title">Chart Builder <button class="info-btn" onclick="document.getElementById('visual-chooser-modal').classList.add('active')" title="Visual Chooser Guide">!</button></h1>
+            <button id="add-to-dashboard" class="btn-accent">+ Add to Dashboard</button>
+          </div>
+          <div class="chart-builder-layout">
+            <div class="chart-config-panel">
+              <div class="config-group">
+                <label class="config-label">Chart Type</label>
+                <div class="chart-type-grid" id="chart-type-grid">
+                  <button class="chart-type-btn active" data-type="bar" title="Bar Chart">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="10" width="4" height="10" rx="1" fill="currentColor" />
+                      <rect x="10" y="6" width="4" height="14" rx="1" fill="currentColor" />
+                      <rect x="18" y="2" width="4" height="18" rx="1" fill="currentColor" />
+                    </svg>
+                    <span>Bar</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="horizontalBar" title="Horizontal Bar">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="3" width="10" height="4" rx="1" fill="currentColor" />
+                      <rect x="2" y="10" width="16" height="4" rx="1" fill="currentColor" />
+                      <rect x="2" y="17" width="8" height="4" rx="1" fill="currentColor" />
+                    </svg>
+                    <span>H-Bar</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="line" title="Line Chart">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M2 18L8 10L13 14L18 6L22 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    </svg>
+                    <span>Line</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="area" title="Area Chart">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M2 20L6 14L11 17L16 9L22 12V20H2Z" fill="currentColor" fill-opacity="0.4" />
+                      <path d="M2 20L6 14L11 17L16 9L22 12" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <span>Area</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="pie" title="Pie Chart">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 12L12 3A9 9 0 0 1 21 12Z" fill="currentColor" />
+                      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
+                    </svg>
+                    <span>Pie</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="doughnut" title="Donut Chart">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 12L12 3A9 9 0 0 1 21 12Z" fill="currentColor" />
+                      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
+                      <circle cx="12" cy="12" r="4" fill="var(--surface)" />
+                    </svg>
+                    <span>Donut</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="scatter" title="Scatter Plot">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <circle cx="6" cy="17" r="2" fill="currentColor" />
+                      <circle cx="10" cy="10" r="2" fill="currentColor" />
+                      <circle cx="16" cy="14" r="2" fill="currentColor" />
+                      <circle cx="19" cy="6" r="2" fill="currentColor" />
+                      <circle cx="4" cy="6" r="2" fill="currentColor" />
+                    </svg>
+                    <span>Scatter</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="bubble" title="Bubble Chart">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <circle cx="7" cy="16" r="4" fill="currentColor" fill-opacity="0.5" stroke="currentColor"
+                        stroke-width="1.5" />
+                      <circle cx="16" cy="9" r="6" fill="currentColor" fill-opacity="0.3" stroke="currentColor"
+                        stroke-width="1.5" />
+                    </svg>
+                    <span>Bubble</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="radar" title="Radar Chart">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <polygon points="12,3 21,9 18,19 6,19 3,9" stroke="currentColor" stroke-width="1.5" fill="none" />
+                      <polygon points="12,7 18,11 16,17 8,17 6,11" fill="currentColor" fill-opacity="0.3"
+                        stroke="currentColor" stroke-width="1" />
+                    </svg>
+                    <span>Radar</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="histogram" title="Histogram">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="12" width="3" height="8" rx=".5" fill="currentColor" />
+                      <rect x="7" y="6" width="3" height="14" rx=".5" fill="currentColor" />
+                      <rect x="12" y="3" width="3" height="17" rx=".5" fill="currentColor" />
+                      <rect x="17" y="8" width="3" height="12" rx=".5" fill="currentColor" />
+                    </svg>
+                    <span>Histogram</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="treemap" title="Treemap">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="2" width="10" height="12" rx="1" fill="currentColor" fill-opacity="0.6" />
+                      <rect x="14" y="2" width="8" height="6" rx="1" fill="currentColor" fill-opacity="0.4" />
+                      <rect x="2" y="16" width="20" height="6" rx="1" fill="currentColor" fill-opacity="0.3" />
+                      <rect x="14" y="10" width="8" height="4" rx="1" fill="currentColor" fill-opacity="0.5" />
+                    </svg>
+                    <span>Treemap</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="heatmap" title="Heatmap">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="2" width="5" height="5" rx=".5" fill="currentColor" fill-opacity="0.9" />
+                      <rect x="9" y="2" width="5" height="5" rx=".5" fill="currentColor" fill-opacity="0.5" />
+                      <rect x="16" y="2" width="5" height="5" rx=".5" fill="currentColor" fill-opacity="0.2" />
+                      <rect x="2" y="9" width="5" height="5" rx=".5" fill="currentColor" fill-opacity="0.4" />
+                      <rect x="9" y="9" width="5" height="5" rx=".5" fill="currentColor" fill-opacity="0.8" />
+                      <rect x="16" y="9" width="5" height="5" rx=".5" fill="currentColor" fill-opacity="0.6" />
+                      <rect x="2" y="16" width="5" height="5" rx=".5" fill="currentColor" fill-opacity="0.2" />
+                      <rect x="9" y="16" width="5" height="5" rx=".5" fill="currentColor" fill-opacity="0.7" />
+                      <rect x="16" y="16" width="5" height="5" rx=".5" fill="currentColor" fill-opacity="0.9" />
+                    </svg>
+                    <span>Heatmap</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="boxplot" title="Box Plot">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <rect x="6" y="7" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.5"
+                        fill="none" />
+                      <path d="M12 3V7M12 17V21M6 12H3M21 12H18" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" />
+                    </svg>
+                    <span>Box Plot</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="funnel" title="Funnel Chart">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <polygon points="3,4 21,4 17,10 7,10" fill="currentColor" fill-opacity="0.7" />
+                      <polygon points="7,11 17,11 14,17 10,17" fill="currentColor" fill-opacity="0.5" />
+                      <polygon points="10,18 14,18 12,22 12,22" fill="currentColor" fill-opacity="0.3" />
+                    </svg>
+                    <span>Funnel</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="waterfall" title="Waterfall">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="6" width="4" height="10" rx=".5" fill="#00e096" />
+                      <rect x="8" y="9" width="4" height="7" rx=".5" fill="#00e096" />
+                      <rect x="14" y="12" width="4" height="4" rx=".5" fill="#ff3d71" />
+                      <rect x="20" y="7" width="4" height="9" rx=".5" fill="#00e096" />
+                    </svg>
+                    <span>Waterfall</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="polarArea" title="Polar Area">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 12 L12 2 A10 10 0 0 1 20.6 7 L12 12Z" fill="currentColor" fill-opacity="0.8" />
+                      <path d="M12 12 L20.6 7 A10 10 0 0 1 19.5 18 L12 12Z" fill="currentColor" fill-opacity="0.6" />
+                      <path d="M12 12 L19.5 18 A10 10 0 0 1 4.5 18 L12 12Z" fill="currentColor" fill-opacity="0.4" />
+                      <path d="M12 12 L4.5 18 A10 10 0 0 1 12 2 L12 12Z" fill="currentColor" fill-opacity="0.2" />
+                    </svg>
+                    <span>Polar</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="sunburst" title="Sunburst">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="3" fill="currentColor" fill-opacity="0.9" />
+                      <circle cx="12" cy="12" r="6" stroke="currentColor" stroke-width="2" stroke-dasharray="4 2"
+                        fill="none" />
+                      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" stroke-dasharray="6 3"
+                        fill="none" />
+                    </svg>
+                    <span>Sunburst</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="gauge" title="Gauge / Indicator">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M3 16 A9 9 0 0 1 21 16" stroke="currentColor" stroke-width="2" fill="none" />
+                      <path d="M12 16 L16 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <circle cx="12" cy="16" r="2" fill="currentColor" />
+                    </svg>
+                    <span>Gauge</span>
+                  </button>
+                  <!-- COMPARISON group -->
+                  <button class="chart-type-btn" data-type="stackedBar" title="Stacked Bar">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="14" width="8" height="4" rx=".5" fill="currentColor" fill-opacity="0.9" />
+                      <rect x="2" y="9" width="8" height="5" rx=".5" fill="currentColor" fill-opacity="0.5" />
+                      <rect x="12" y="10" width="10" height="4" rx=".5" fill="currentColor" fill-opacity="0.9" />
+                      <rect x="12" y="5" width="10" height="5" rx=".5" fill="currentColor" fill-opacity="0.5" />
+                    </svg>
+                    <span>Stacked</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="percentBar" title="100% Stacked Bar">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="5" width="20" height="5" rx=".5" fill="currentColor" fill-opacity="0.8" />
+                      <rect x="2" y="5" width="8" height="5" rx=".5" fill="currentColor" />
+                      <rect x="2" y="12" width="20" height="5" rx=".5" fill="currentColor" fill-opacity="0.8" />
+                      <rect x="2" y="12" width="14" height="5" rx=".5" fill="currentColor" />
+                    </svg>
+                    <span>100% Bar</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="stackedColumn" title="Stacked Column">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="12" width="4" height="8" rx=".5" fill="currentColor" fill-opacity="0.5" />
+                      <rect x="2" y="7" width="4" height="5" rx=".5" fill="currentColor" />
+                      <rect x="10" y="10" width="4" height="10" rx=".5" fill="currentColor" fill-opacity="0.5" />
+                      <rect x="10" y="4" width="4" height="6" rx=".5" fill="currentColor" />
+                      <rect x="18" y="13" width="4" height="7" rx=".5" fill="currentColor" fill-opacity="0.5" />
+                      <rect x="18" y="9" width="4" height="4" rx=".5" fill="currentColor" />
+                    </svg>
+                    <span>Stacked Col</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="dumbbell" title="Dumbbell / Dot Plot">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <line x1="4" y1="7" x2="20" y2="7" stroke="currentColor" stroke-width="1.5" />
+                      <circle cx="4" cy="7" r="2.5" fill="currentColor" fill-opacity="0.5" />
+                      <circle cx="20" cy="7" r="2.5" fill="currentColor" />
+                      <line x1="4" y1="14" x2="20" y2="14" stroke="currentColor" stroke-width="1.5" />
+                      <circle cx="4" cy="14" r="2.5" fill="currentColor" />
+                      <circle cx="20" cy="14" r="2.5" fill="currentColor" fill-opacity="0.4" />
+                    </svg>
+                    <span>Dumbbell</span>
+                  </button>
+                  <!-- DISTRIBUTION group -->
+                  <button class="chart-type-btn" data-type="violin" title="Violin Plot">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M12 2 C8 2 5 6 5 10 C5 14 8 15 8 18 C8 20 10 22 12 22 C14 22 16 20 16 18 C16 15 19 14 19 10 C19 6 16 2 12 2Z"
+                        stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.3" />
+                    </svg>
+                    <span>Violin</span>
+                  </button>
+                  <button class="chart-type-btn" data-type="stripPlot" title="Strip / Dot Plot">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <line x1="12" y1="2" x2="12" y2="22" stroke="currentColor" stroke-width="1.5"
+                        stroke-dasharray="1 0" />
+                      <circle cx="12" cy="5" r="2" fill="currentColor" />
+                      <circle cx="12" cy="10" r="2" fill="currentColor" fill-opacity="0.7" />
+                      <circle cx="12" cy="15" r="2" fill="currentColor" fill-opacity="0.4" />
+                      <circle cx="12" cy="20" r="2" fill="currentColor" fill-opacity="0.8" />
+                    </svg>
+                    <span>Strip</span>
+                  </button>
+                  <!-- FLOW group -->
+                  <button class="chart-type-btn" data-type="sankey" title="Sankey Diagram">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <rect x="1" y="3" width="3" height="18" rx="1" fill="currentColor" />
+                      <rect x="20" y="4" width="3" height="7" rx="1" fill="currentColor" />
+                      <rect x="20" y="13" width="3" height="7" rx="1" fill="currentColor" />
+                      <path d="M4 7 C10 7 10 7 20 7" stroke="currentColor" stroke-width="3" fill="none" opacity="0.5" />
+                      <path d="M4 15 C10 15 10 16 20 16" stroke="currentColor" stroke-width="2.5" fill="none"
+                        opacity="0.4" />
+                    </svg>
+                    <span>Sankey</span>
+                  </button>
+                  <!-- SINGLE / KPI group -->
+                  <button class="chart-type-btn" data-type="bullet" title="Bullet Chart">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="8" width="20" height="8" rx="1" fill="currentColor" fill-opacity="0.15" />
+                      <rect x="2" y="9" width="14" height="6" rx="1" fill="currentColor" fill-opacity="0.5" />
+                      <rect x="2" y="10" width="9" height="4" rx="1" fill="currentColor" />
+                      <line x1="16" y1="7" x2="16" y2="17" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" />
+                    </svg>
+                    <span>Bullet</span>
+                  </button>
+                  <!-- CHANGE OVER TIME -->
+                  <button class="chart-type-btn" data-type="candlestick" title="Candlestick Chart">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <line x1="5" y1="3" x2="5" y2="21" stroke="currentColor" stroke-width="1" />
+                      <rect x="3" y="6" width="4" height="8" rx=".5" fill="#00e096" />
+                      <line x1="12" y1="2" x2="12" y2="22" stroke="currentColor" stroke-width="1" />
+                      <rect x="10" y="9" width="4" height="10" rx=".5" fill="#ff3d71" />
+                      <line x1="19" y1="4" x2="19" y2="20" stroke="currentColor" stroke-width="1" />
+                      <rect x="17" y="5" width="4" height="7" rx=".5" fill="#00e096" />
+                    </svg>
+                    <span>Candle</span>
+                  </button>
+                  <!-- PART-TO-WHOLE -->
+                  <button class="chart-type-btn" data-type="marimekko" title="Marimekko / Mosaic Chart">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="2" width="7" height="20" rx=".5" fill="currentColor" fill-opacity="0.8" />
+                      <rect x="2" y="12" width="7" height="10" rx=".5" fill="currentColor" fill-opacity="0.4" />
+                      <rect x="11" y="2" width="5" height="20" rx=".5" fill="currentColor" fill-opacity="0.7" />
+                      <rect x="11" y="10" width="5" height="12" rx=".5" fill="currentColor" fill-opacity="0.35" />
+                      <rect x="18" y="2" width="4" height="20" rx=".5" fill="currentColor" fill-opacity="0.6" />
+                      <rect x="18" y="14" width="4" height="8" rx=".5" fill="currentColor" fill-opacity="0.3" />
+                    </svg>
+                    <span>Marimekko</span>
+                  </button>
+                  <!-- CORRELATION -->
+                  <button class="chart-type-btn" data-type="paretoChart" title="Pareto Chart">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="4" width="4" height="16" rx=".5" fill="currentColor" />
+                      <rect x="8" y="8" width="4" height="12" rx=".5" fill="currentColor" fill-opacity="0.7" />
+                      <rect x="14" y="13" width="4" height="7" rx=".5" fill="currentColor" fill-opacity="0.5" />
+                      <path d="M4 6 L10 10 L16 14 L22 18" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" />
+                    </svg>
+                    <span>Pareto</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="config-group">
+                <label class="config-label">X Axis / Category</label>
+                <select id="x-axis-select" class="select-input full-width"></select>
+              </div>
+
+              <div class="config-group">
+                <label class="config-label">Y Axis / Value</label>
+                <select id="y-axis-select" class="select-input full-width"></select>
+              </div>
+
+              <div class="config-group">
+                <label class="config-label">Aggregation</label>
+                <select id="aggregation-select" class="select-input full-width">
+                  <option value="none">None (raw values)</option>
+                  <option value="sum">Sum</option>
+                  <option value="avg">Average</option>
+                  <option value="count">Count</option>
+                  <option value="min">Min</option>
+                  <option value="max">Max</option>
+                  <option value="median">Median</option>
+                </select>
+              </div>
+
+              <div class="config-group" id="size-col-group">
+                <label class="config-label">Size Column (Bubble)</label>
+                <select id="size-col-select" class="select-input full-width"></select>
+              </div>
+
+              <div class="config-group">
+                <label class="config-label">Color Scheme</label>
+                <select id="color-scheme-select" class="select-input full-width">
+                  <option value="default">DataLytics Default</option>
+                  <option value="vibrant">Vibrant</option>
+                  <option value="pastel">Pastel</option>
+                  <option value="mono-cyan">Monochrome Cyan</option>
+                  <option value="mono-coral">Monochrome Coral</option>
+                  <option value="diverging">Diverging</option>
+                </select>
+              </div>
+
+              <div class="config-group">
+                <label class="config-label">Chart Title</label>
+                <input id="chart-title-input" class="text-input full-width" type="text"
+                  placeholder="Enter chart title…" />
+              </div>
+
+              <div class="config-group">
+                <label class="config-label">Limit rows</label>
+                <select id="limit-select" class="select-input full-width">
+                  <option value="0">All rows</option>
+                  <option value="10">Top 10</option>
+                  <option value="20">Top 20</option>
+                  <option value="50">Top 50</option>
+                  <option value="100">Top 100</option>
+                </select>
+              </div>
+
+              <button id="render-chart-btn" class="btn-primary full-width">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M2 12L5 7L8 9L11 4L14 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+                Render Chart
+              </button>
+            </div>
+
+            <div class="chart-preview-panel">
+              <div class="chart-preview-card">
+                <div id="chart-placeholder" class="chart-placeholder">
+                  <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                    <path d="M8 50L20 30L30 38L42 20L56 28" stroke="#2a3a5c" stroke-width="3" stroke-linecap="round"
+                      stroke-linejoin="round" />
+                  </svg>
+                  <p>Configure chart and click Render</p>
+                </div>
+                <div id="main-chart-container" class="main-chart-container hidden">
+                  <canvas id="main-chart"></canvas>
+                </div>
+                <div id="plotly-chart-container" class="main-chart-container hidden"></div>
+              </div>
+
+              <div class="chart-stats-row" id="chart-stats-row"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── DASHBOARD ── -->
+        <section id="section-dashboard" class="content-section">
+          <div class="section-header">
+            <h1 class="section-title">Dashboard</h1>
+            <div class="section-actions">
+              <button id="auto-dashboard-btn" class="btn-accent">⚡ Auto-Generate Dashboard</button>
+              <button id="clear-dashboard-btn" class="header-btn">Clear All</button>
+            </div>
+          </div>
+          <div id="dashboard-empty" class="dashboard-empty">
+            <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
+              <rect x="4" y="4" width="28" height="34" rx="3" stroke="#2a3a5c" stroke-width="2" />
+              <rect x="38" y="4" width="30" height="16" rx="3" stroke="#2a3a5c" stroke-width="2" />
+              <rect x="4" y="44" width="64" height="24" rx="3" stroke="#2a3a5c" stroke-width="2" />
+              <rect x="38" y="26" width="30" height="12" rx="3" stroke="#2a3a5c" stroke-width="2" />
+            </svg>
+            <h3>Your dashboard is empty</h3>
+            <p>Build charts in Chart Builder and click <strong>Add to Dashboard</strong>, or use Auto-Generate.</p>
+          </div>
+          <div id="dashboard-grid" class="dashboard-grid"></div>
+        </section>
+
+        <!-- ── SQL LAB ── -->
+        <section id="section-sql" class="content-section">
+          <div class="section-header">
+            <h1 class="section-title">SQL Lab</h1>
+            <div class="section-actions">
+              <button id="run-sql-btn" class="btn-primary">▶ Run Query</button>
+              <button id="format-sql-btn" class="header-btn">Format</button>
+            </div>
+          </div>
+          <div class="sql-layout">
+            <div class="sql-left">
+              <div class="sql-schema-box">
+                <div class="schema-label">SCHEMA</div>
+                <div id="schema-tree" class="schema-tree"></div>
+              </div>
+              <div class="sql-snippets">
+                <div class="schema-label">QUICK QUERIES</div>
+                <div id="snippet-list" class="snippet-list"></div>
+              </div>
+            </div>
+            <div class="sql-right">
+              <div class="ai-chat-wrapper premium-ai-box">
+                <div class="premium-ai-inner">
+                  <div class="ai-header">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="ai-spark">
+                      <path d="M12 2L15 8L21 11L15 14L12 20L9 14L3 11L9 8L12 2Z" fill="url(#sparkGradient)" />
+                      <defs>
+                        <linearGradient id="sparkGradient" x1="3" y1="2" x2="21" y2="20" gradientUnits="userSpaceOnUse">
+                          <stop stop-color="#00cffd" />
+                          <stop offset="1" stop-color="#ff3d71" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <span>AI SQL ASSISTANT</span>
+                  </div>
+                  <div class="ai-input-row">
+                    <input id="ai-chat-input" type="text" class="ai-chat-input-field"
+                      placeholder="Ask in plain English (e.g. 'Show top 10 rows by sales')..." />
+                    <button id="ai-chat-submit" class="btn-ai-generate">
+                      Generate
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                          stroke-linejoin="round" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="sql-editor-wrapper">
+                <div class="editor-toolbar">
+                  <span class="editor-label">SQL EDITOR</span>
+                  <button id="clear-sql-btn" class="editor-btn">Clear</button>
+                </div>
+                <textarea id="sql-editor" class="sql-editor" spellcheck="false"
+                  placeholder="SELECT * FROM data LIMIT 10"></textarea>
+              </div>
+              <div class="sql-results-wrapper">
+                <div class="results-header">
+                  <span class="results-label">RESULTS</span>
+                  <span id="results-count" class="results-count"></span>
+                  <button id="export-sql-results" class="editor-btn hidden">Export Results</button>
+                </div>
+                <div id="sql-results" class="sql-results">
+                  <p class="sql-hint">Run a query to see results here.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── DATA PROFILE ── -->
+        <section id="section-profile" class="content-section">
+          <div class="section-header">
+            <h1 class="section-title">Data Profile</h1>
+            <button id="regen-profile-btn" class="header-btn">↻ Regenerate</button>
+          </div>
+          <div id="profile-content" class="profile-content"></div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+
+  <!-- VISUAL CHOOSER MODAL -->
+  <div id="visual-chooser-modal" class="modal-overlay">
+    <div class="modal-content visual-chooser-content">
+      <button class="modal-close" onclick="document.getElementById('visual-chooser-modal').classList.remove('active')">&times;</button>
+      <div class="modal-header">
+        <h2 class="modal-title">Choosing the Right Visual</h2>
+        <p class="modal-subtitle">A professional guide to selecting the most effective chart for your data intelligence.</p>
+      </div>
+      <div class="visual-guide-container">
+        <img src="visual-guide.png" alt="Power BI Visual Selection Guide" class="visual-guide-img">
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- SCRIPTS -->
+  <script src="js/data-processor.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/sql-engine.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    /* ── Flowing Gradient Mesh Background (Upload Screen) ── */
+    (function () {
+      function initCanvas() {
+        const canvas = document.getElementById('upload-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark';
+
+        const orbs = [
+          { xBase: 0.2, yBase: 0.25, r: 0.38, h: [190, 220], speed: 0.00045, phase: 0 },
+          { xBase: 0.8, yBase: 0.2, r: 0.32, h: [230, 260], speed: 0.00038, phase: 1.2 },
+          { xBase: 0.5, yBase: 0.7, r: 0.42, h: [200, 240], speed: 0.00052, phase: 2.4 },
+          { xBase: 0.15, yBase: 0.75, r: 0.28, h: [340, 20], speed: 0.00035, phase: 0.8 },
+          { xBase: 0.85, yBase: 0.65, r: 0.30, h: [210, 195], speed: 0.00042, phase: 3.1 },
+          { xBase: 0.5, yBase: 0.15, r: 0.25, h: [260, 300], speed: 0.00048, phase: 1.7 },
+        ];
+
+        function resize() {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+        }
+
+        function draw(ts) {
+          const W = canvas.width, H = canvas.height;
+          if (W === 0 || H === 0) { requestAnimationFrame(draw); return; }
+
+          const dark = isDark();
+          ctx.clearRect(0, 0, W, H);
+          ctx.fillStyle = dark ? '#0d1117' : '#f0f4f8';
+          ctx.fillRect(0, 0, W, H);
+
+          for (const o of orbs) {
+            const drift = Math.sin(ts * o.speed + o.phase);
+            const drift2 = Math.cos(ts * o.speed * 0.7 + o.phase + 1);
+            const cx = (o.xBase + drift * 0.08) * W;
+            const cy = (o.yBase + drift2 * 0.06) * H;
+            const r = Math.max(1, o.r * Math.min(W, H));
+            const a = dark ? 0.20 : 0.25;
+
+            try {
+              const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+              grad.addColorStop(0, `hsla(${o.h[0]}, 90%, 65%, ${a})`);
+              grad.addColorStop(0.5, `hsla(${Math.round((o.h[0] + o.h[1]) / 2)}, 80%, 60%, ${a * 0.5})`);
+              grad.addColorStop(1, `hsla(${o.h[1]}, 70%, 55%, 0)`);
+              ctx.beginPath();
+              ctx.arc(cx, cy, r, 0, Math.PI * 2);
+              ctx.fillStyle = grad;
+              ctx.fill();
+            } catch (e) { /* skip if gradient fails */ }
+          }
+
+          // Vignette
+          try {
+            const vig = ctx.createRadialGradient(W / 2, H / 2, H * 0.1, W / 2, H / 2, H * 0.85);
+            vig.addColorStop(0, 'rgba(0,0,0,0)');
+            vig.addColorStop(1, dark ? 'rgba(0,0,0,0.4)' : 'rgba(200,210,230,0.3)');
+            ctx.fillStyle = vig;
+            ctx.fillRect(0, 0, W, H);
+          } catch (e) { }
+
+          requestAnimationFrame(draw);
+        }
+
+        resize();
+        window.addEventListener('resize', resize);
+        requestAnimationFrame(draw);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCanvas);
+      } else {
+        initCanvas();
+      }
+    })();
+  </script>
+</body>
+
+</html>
